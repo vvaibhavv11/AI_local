@@ -1,0 +1,228 @@
+/** ./srcvite-env.d.ts **/
+/// <reference types="vite/client" />
+
+
+/** ./srcmain.tsx **/
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+    <React.StrictMode>
+        <App />
+    </React.StrictMode>,
+);
+
+
+/** ./srcApp.css **/
+@import "tailwindcss";
+
+
+
+/** ./srcApp.tsx **/
+import React, { useState, useRef, useEffect } from 'react';
+import { Header } from './components/Header';
+import { ChatMessages } from './components/ChatMessages';
+import { ChatInput } from './components/ChatInput';
+import type { Message } from './components/ChatMessages';
+
+function App() {
+    const [input, setInput] = useState('');
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages, isLoading]);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!input.trim() || isLoading) return;
+
+        const newMessage: Message = {
+            id: Date.now().toString(),
+            content: input,
+            role: 'user',
+        };
+
+        setMessages(prev => [...prev, newMessage]);
+        setInput('');
+        setIsLoading(true);
+
+        // Simulate AI response
+        setTimeout(() => {
+            const aiResponse: Message = {
+                id: (Date.now() + 1).toString(),
+                content: "I'm a simulated AI response. You can replace this with real AI integration.",
+                role: 'assistant',
+            };
+            setMessages(prev => [...prev, aiResponse]);
+            setIsLoading(false);
+        }, 2000);
+    };
+
+    return (
+        <div className="min-h-screen dark bg-gray-900">
+            <div className="max-w-4xl mx-auto h-screen flex flex-col">
+                <Header />
+                <ChatMessages
+                    messages={messages}
+                    isLoading={isLoading}
+                    messagesEndRef={messagesEndRef}
+                />
+                <ChatInput
+                    input={input}
+                    setInput={setInput}
+                    isLoading={isLoading}
+                    onSubmit={handleSubmit}
+                />
+            </div>
+        </div>
+    );
+}
+
+export default App;
+
+
+/** ./src/componentsHeader.tsx **/
+export function Header() {
+    return (
+        <header className="p-4 border-b dark:border-gray-700 flex justify-between items-center">
+            <h1 className="text-xl font-semibold text-white">AI Chat Interface</h1>
+        </header>
+    );
+}
+
+
+/** ./src/componentsLoadingDots.tsx **/
+export function LoadingDots() {
+    return (
+        <div className="flex space-x-2 p-2">
+            <div className="w-2 h-2 rounded-full bg-blue-500 animate-[bounce_1s_ease-in-out_infinite]"></div>
+            <div className="w-2 h-2 rounded-full bg-blue-500 animate-[bounce_1s_ease-in-out_0.2s_infinite]"></div>
+            <div className="w-2 h-2 rounded-full bg-blue-500 animate-[bounce_1s_ease-in-out_0.4s_infinite]"></div>
+        </div>
+    );
+}
+
+
+/** ./src/componentsChatInput.tsx **/
+import React from 'react';
+import { Send } from 'lucide-react';
+
+export type ChatInputProps = {
+    input: string;
+    setInput: (value: string) => void;
+    isLoading: boolean;
+    onSubmit: (e: React.FormEvent) => void;
+}
+
+export function ChatInput({ input, setInput, isLoading, onSubmit }: ChatInputProps) {
+    return (
+        <form onSubmit={onSubmit} className="p-4 border-gray-700">
+            <div className="flex space-x-4">
+                <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Type your message..."
+                    disabled={isLoading}
+                    className="flex-1 p-3 rounded-lg border-gray-600 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+                <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-gray-900 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <Send className="w-5 h-5" />
+                    <span>Send</span>
+                </button>
+            </div>
+        </form>
+    );
+}
+
+
+/** ./src/componentsChatMessage.tsx **/
+import { User, Bot } from 'lucide-react';
+
+export type Message = {
+    id: string;
+    content: string;
+    role: 'user' | 'assistant';
+}
+
+type ChatMessageProps = {
+    message: Message;
+}
+
+export function ChatMessage({ message }: ChatMessageProps) {
+    return (
+        <div
+            className={`flex items-start space-x-3 ${message.role === 'assistant' ? 'bg-gray-100 dark:bg-gray-800' : ''
+                } rounded-lg p-4`}
+        >
+            <div className={`p-2 rounded-full ${message.role === 'assistant'
+                    ? 'bg-green-600'
+                    : 'bg-blue-600'
+                }`}>
+                {message.role === 'assistant' ? (
+                    <Bot className="w-5 h-5 text-white" />
+                ) : (
+                    <User className="w-5 h-5 text-white" />
+                )}
+            </div>
+            <div className="flex-1">
+                <p className="text-gray-200">{message.content}</p>
+            </div>
+        </div>
+    );
+}
+
+
+/** ./src/componentsChatMessages.tsx **/
+import React from 'react';
+import { Bot } from 'lucide-react';
+import { ChatMessage } from './ChatMessage';
+import { LoadingDots } from './LoadingDots';
+
+export type Message = {
+    id: string;
+    content: string;
+    role: 'user' | 'assistant';
+}
+
+export type ChatMessagesProps = {
+    messages: Message[];
+    isLoading: boolean;
+    messagesEndRef: React.RefObject<HTMLDivElement>;
+}
+
+export function ChatMessages({ messages, isLoading, messagesEndRef }: ChatMessagesProps) {
+    return (
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {messages.map((message) => {
+                console.log(message)
+                return <ChatMessage key={message.id} message={message} />
+            })}
+            {isLoading && (
+                <div className="flex items-start space-x-3 bg-gray-800 rounded-lg p-4">
+                    <div className="p-2 rounded-full bg-green-600">
+                        <Bot className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1">
+                        <LoadingDots />
+                    </div>
+                </div>
+            )}
+            <div ref={messagesEndRef} />
+        </div>
+    );
+}
+
+
