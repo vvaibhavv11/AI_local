@@ -3,7 +3,6 @@ import Markdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useEffect, useState } from "react";
-import { Components } from "react-markdown/lib/ast-to-react";
 
 type AIMessageProps = {
     content: string;
@@ -22,8 +21,8 @@ export const AIMessage = ({ content, isLoading }: AIMessageProps) => {
         }
     }, [isLoading]);
 
-    const components: Components = {
-        code({ className, children, ...props }) {
+    const components = {
+        code({ className, children, ...props }: any) {
             const match = /language-(\w+)/.exec(className || '');
             const code = String(children).replace(/\n$/, '');
 
@@ -64,25 +63,25 @@ export const AIMessage = ({ content, isLoading }: AIMessageProps) => {
                 </code>
             );
         },
-        p({ children }) {
+        p({ children }: any) {
             return <p className="mb-4 last:mb-0">{children}</p>
         },
-        ul({ children }) {
+        ul({ children }:any) {
             return <ul className="list-disc ml-4 mb-4">{children}</ul>
         },
-        ol({ children }) {
+        ol({ children }:any) {
             return <ol className="list-decimal ml-4 mb-4">{children}</ol>
         },
-        li({ children }) {
+        li({ children }:any) {
             return <li className="mb-1">{children}</li>
         },
-        h1({ children }) {
+        h1({ children }:any) {
             return <h1 className="text-xl font-bold mb-4">{children}</h1>
         },
-        h2({ children }) {
+        h2({ children }:any) {
             return <h2 className="text-lg font-bold mb-3">{children}</h2>
         },
-        h3({ children }) {
+        h3({ children }:any) {
             return <h3 className="text-base font-bold mb-2">{children}</h3>
         }
     };
